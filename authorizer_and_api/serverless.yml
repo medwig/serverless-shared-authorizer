@@ -1,0 +1,71 @@
+service: authorizer-stack
+frameworkVersion: ">=1.13.2 <2.0.0"
+
+provider:
+  name: aws
+  runtime: python3.6
+
+functions:
+ authorizer:
+   handler: authorizer.handler
+
+ local_authorizer:
+   handler: lambda.handler
+   events:
+     - http:
+         path: local_test
+         method: get
+         authorizer:
+           type: CUSTOM
+           authorizerId:
+             Ref: Authorizer
+
+resources:
+ Resources:
+   AuthorizerPermission:
+     Type: AWS::Lambda::Permission
+     Properties:
+         FunctionName:
+             Fn::GetAtt: AuthorizerLambdaFunction.Arn
+         Action: lambda:InvokeFunction
+         Principal:
+           Fn::Join: ["",["apigateway.", { Ref: "AWS::URLSuffix"}]]
+   Authorizer:
+     DependsOn:
+       - ApiGatewayRestApi
+     Type: AWS::ApiGateway::Authorizer
+     Properties: 
+       Name: ${self:provider.stage}-Authorizer
+       RestApiId: { "Ref" : "ApiGatewayRestApi" }
+       Type: TOKEN
+       IdentitySource: method.request.header.Authorization
+       AuthorizerResultTtlInSeconds: 300
+       AuthorizerUri:
+         Fn::Join:
+           - ''
+           - 
+             - 'arn:aws:apigateway:'
+             - Ref: "AWS::Region"
+             - ':lambda:path/2015-03-31/functions/'
+             - Fn::GetAtt: "AuthorizerLambdaFunction.Arn"
+             - "/invocations"
+
+ Outputs:
+   AuthorizerId:
+     Value:
+       Ref: Authorizer
+     Export:
+       Name: authorizerId
+   apiGatewayRestApiId:
+     Value:
+       Ref: ApiGatewayRestApi
+     Export:
+       Name: restApiId
+   apiGatewayRestApiRootResourceId:
+     Value:
+        Fn::GetAtt:
+         - ApiGatewayRestApi
+         - RootResourceId
+     Export:
+       Name: rootResourceId
+

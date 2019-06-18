@@ -1,0 +1,23 @@
+service: test-service
+frameworkVersion: ">=1.13.2 <2.0.0"
+
+provider:
+  name: aws
+  runtime: python3.6
+  apiGateway:
+    restApiId:
+      Fn::ImportValue: 'authorizer-stack-dev-restApiId'
+    restApiRootResourceId:
+      Fn::ImportValue: authorizer-stack-dev-rootResourceId
+
+functions:
+  import_authorizer:
+    handler: lambda.handler
+    events:
+      - http:
+          path: import_test
+          method: get
+          authorizer:
+            type: CUSTOM
+            authorizerId: !ImportValue authorizer-stack-dev-authorizerId
+
