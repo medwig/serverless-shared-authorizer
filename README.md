@@ -22,3 +22,10 @@ $ curl https://apiroot.execute-api.us-east-1.amazonaws.com/dev/import_test -H 'A
 ```
 
 I can also demonstrate how to do the same with an API set up in Terraform, using SSM instead of Cloudformation Outputs, if there interest.
+
+
+Sources:
+- https://forum.serverless.com/t/share-authorizer-with-token-type/8121/9
+- https://forum.serverless.com/t/shared-api-gateway-cognito-user-pools-authorizer-across-services/6565
+- https://serverless.com/framework/docs/providers/aws/events/apigateway#http-endpoints-with-custom-authorizers
+
